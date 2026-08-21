@@ -1,0 +1,9 @@
+{
+    "name": "StdPeriph",
+    "version": "3.6.0",
+    "description": "STM32F10x Standard Peripheral Library (official)",
+    "build": {
+        "srcDir": "src",
+        "includeDir": "include"
+    }
+}
