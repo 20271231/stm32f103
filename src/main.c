@@ -26,6 +26,31 @@
 
 #define RCC_APB2ENR_IOPCEN ((uint32_t)0x00000010) /* bit4: GPIOC 时钟使能 */
 
+#define PERIPH_BASE ((uint32_t)0x40000000)
+#define RCC_APB2ENR_IOPAEN ((uint32_t)0x00000004)
+#define RCC_APB2ENR_IOPBEN ((uint32_t)0x00000008)
+
+#define APB1PERIPH_BASE PERIPH_BASE
+#define APB2PERIPH_BASE (PERIPH_BASE + 0x10000)
+
+#define GPIOA_BASE (APB2PERIPH_BASE + 0x0800)
+#define GPIOA_CRL (*(volatile uint32_t *)(GPIOA_BASE + 0x00))
+#define GPIOA_ODR (*(volatile uint32_t *)(GPIOA_BASE + 0x0C))
+#define GPIOA_BSRR (*(volatile uint32_t *)(GPIOA_BASE + 0x10))
+#define GPIOA_BRR (*(volatile uint32_t *)(GPIOA_BASE + 0x14))
+
+#define GPIO_CRL_A0_MASK (0xFUL << 0)
+#define GPIO_CRL_A0_PP_50M (0x3UL << 0)
+
+#define GPIO_CRH_B12_MASK (0xFUL << 16)
+#define GPIO_CRH_B12_PP_50M (0x3UL << 16) // 所以偏移量 = (12(引脚) - 8(高８位)) * 4 = 16。
+
+#define GPIOB_BASE (APB2PERIPH_BASE + 0x0C00)
+#define GPIOB_CRH (*(volatile uint32_t *)(GPIOB_BASE + 0x04))
+#define GPIOB_ODR (*(volatile uint32_t *)(GPIOB_BASE + 0x0Ch))
+#define GPIOB_BSRR (*(volatile uint32_t *)(GPIOB_BASE + 0x10))
+#define GPIOB_BRR (*(volatile uint32_t *)(GPIOB_BASE + 0x14))
+
 /* ---- GPIOC ---- */
 #define GPIOC_BASE 0x40011000UL // 0x40000000 + 0x10000 + 0x1000
 #define GPIOC_CRH (*(volatile uint32_t *)(GPIOC_BASE + 0x04))
@@ -98,7 +123,7 @@ __attribute__((always_inline)) static void Delay_sw(volatile uint32_t loops)
  * 注意:若系统时钟未跑到 72MHz(如 HSE 失败落到 HSI),
  *       延时会按比例变长,但 LED 仍会闪烁。
  */
-__attribute__((always_inline)) static void Delay_ms(uint32_t ms)
+static void Delay_ms(uint32_t ms)
 {
     SYST_LOAD = 72000UL - 1;                            /* 重装载值: 1ms @72MHz */
     SYST_VAL = 0;                                       /* 清当前计数值,从满值开始数 */
@@ -149,5 +174,42 @@ void ControlTheBlinkingOfTheOn_boardLED(void)
 }
 int main(void)
 {
-    ControlTheBlinkingOfTheOn_boardLED();
+    // ControlTheBlinkingOfTheOn_boardLED();
+    /**
+     * RCC_APB2ENR 寄存器控制着APB2总线上所有外设（GPIOA/B/C、USART1、ADC等）的时钟。
+     * 使用 |=（按位或）可以只把GPIOA对应的那一位（Bit 2）变成1，
+     * 而绝对不改动该寄存器中其他外设（比如正在使用的USART1）的时钟状态，避免导致其他外设死机
+     */
+    RCC_APB2ENR |= RCC_APB2ENR_IOPAEN;//有1则1
+    /**
+     *                  RCC_APB2ENR = 0100 0000 0000 0010 0001 0000 0001 1000
+                 RCC_APB2ENR_IOPCEN = 0000 0000 0000 0000 0000 0000 0001 0000
+  RCC_APB2ENR |= RCC_APB2ENR_IOPCEN = 0100 0000 0000 0010 0001 0000 0001 1000   
+     */
+    GPIOA_CRL = (GPIOA_CRL & ~GPIO_CRL_A0_MASK) | GPIO_CRL_A0_PP_50M;
+    /**
+     *              
+             GPIO_CRL_A0_MASK = 0000 0000 0000 0000 0000 0000 0000 1111
+            ~GPIO_CRL_A0_MASK = 1111 1111 1111 1111 1111 1111 1111 0000
+                    GPIOA_CRL = 0100 0000 0000 0001 0000 1000 0000 0000
+GPIOA_CRL & ~GPIO_CRL_A0_MASK = 0100 0000 0000 0001 0000 1000 0000 0000
+
+           GPIO_CRL_A0_PP_50M = 0000 0000 0000 0001 0000 1000 0000 0011
+GPIOA_CRL & ~GPIO_CRL_A0_MASK = 0100 0000 0000 0001 0000 1000 0000 0000
+                    GPIOA_CRL = 0100 0000 0000 0001 0000 1000 0000 0000
+                              = 0100 0000 0000 0001 0000 1000 0000 0000
+
+     */
+
+    RCC_APB2ENR |= RCC_APB2ENR_IOPBEN;
+    GPIOB_CRH = (GPIOB_CRH & ~GPIO_CRH_B12_MASK) | GPIO_CRH_B12_PP_50M;
+    while (1)
+    {
+        GPIOA_BSRR = (1UL << 0);
+        GPIOB_BRR = (1UL << 12);
+        Delay_ms(10);
+        GPIOA_BRR = (1UL << 0);
+        GPIOB_BSRR = (1UL << 12);
+        Delay_ms(10);
+    }
 }
