@@ -172,23 +172,23 @@ void ControlTheBlinkingOfTheOn_boardLED(void)
         Delay_ms(LED_BLINK_MS);
     }
 }
-int main(void)
+
+void MakeTheLEDBlink(void)
 {
-    // ControlTheBlinkingOfTheOn_boardLED();
     /**
      * RCC_APB2ENR 寄存器控制着APB2总线上所有外设（GPIOA/B/C、USART1、ADC等）的时钟。
      * 使用 |=（按位或）可以只把GPIOA对应的那一位（Bit 2）变成1，
      * 而绝对不改动该寄存器中其他外设（比如正在使用的USART1）的时钟状态，避免导致其他外设死机
      */
-    RCC_APB2ENR |= RCC_APB2ENR_IOPAEN;//有1则1
+    RCC_APB2ENR |= RCC_APB2ENR_IOPAEN; // 有1则1
     /**
      *                  RCC_APB2ENR = 0100 0000 0000 0010 0001 0000 0001 1000
                  RCC_APB2ENR_IOPCEN = 0000 0000 0000 0000 0000 0000 0001 0000
-  RCC_APB2ENR |= RCC_APB2ENR_IOPCEN = 0100 0000 0000 0010 0001 0000 0001 1000   
+  RCC_APB2ENR |= RCC_APB2ENR_IOPCEN = 0100 0000 0000 0010 0001 0000 0001 1000
      */
     GPIOA_CRL = (GPIOA_CRL & ~GPIO_CRL_A0_MASK) | GPIO_CRL_A0_PP_50M;
     /**
-     *              
+     *
              GPIO_CRL_A0_MASK = 0000 0000 0000 0000 0000 0000 0000 1111
             ~GPIO_CRL_A0_MASK = 1111 1111 1111 1111 1111 1111 1111 0000
                     GPIOA_CRL = 0100 0000 0000 0001 0000 1000 0000 0000
@@ -212,4 +212,10 @@ GPIOA_CRL & ~GPIO_CRL_A0_MASK = 0100 0000 0000 0001 0000 1000 0000 0000
         GPIOB_BSRR = (1UL << 12);
         Delay_ms(10);
     }
+}
+
+int main(void)
+{
+    // ControlTheBlinkingOfTheOn_boardLED();
+    //MakeTheLEDBlink();
 }
