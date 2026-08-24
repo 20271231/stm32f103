@@ -35,26 +35,3 @@ uint8_t Key_GetNum(void)
     return KeyNum;
 }
 
-void LED1_Turn(void)
-{
-    if (GPIO_ReadOutputDataBit(GPIOA, GPIO_Pin_1) == 0)
-    {
-        GPIO_SetBits(GPIOA, GPIO_Pin_1);
-    }
-    else
-    {
-        GPIO_ResetBits(GPIOA,GPIO_Pin_1);
-    }
-}
-
-void LED2_Turn(void)
-{
-    if (GPIO_ReadOutputDataBit(GPIOA, GPIO_Pin_2) == 0)
-    {
-        GPIO_SetBits(GPIOA, GPIO_Pin_2);
-    }
-    else
-    {
-        GPIO_ResetBits(GPIOA,GPIO_Pin_2);
-    }
-}
