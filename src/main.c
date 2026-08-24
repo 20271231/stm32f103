@@ -1,25 +1,15 @@
 #include "stm32f10x.h"
 #include "Delay.h"
-#include "buzzer.h"
-#include "lightSenor.h"
-
-uint8_t KeyNum;
+#include "oled.h"
 
 int main(void)
 {
-    BUZZER_INIT();
-    LightSenor_Init();
 
+    OLED_Init();
+    OLED_ShowString(0, 0, "helloWorld");
     while (1)
     {
-        if (LightSenorGetNum() == 1)
-        {
-            BUZZER_ON();
-        }
-        else
-        {
-            BUZZER_OFF();
-        }
+        // 可在此处更新显示内容或循环演示
     }
 
     return 0;
