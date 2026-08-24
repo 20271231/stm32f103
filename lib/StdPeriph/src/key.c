@@ -1,5 +1,6 @@
 #include "stm32f10x.h"
 #include "Delay.h"
+#include "key.h"
 
 void Key_Init(void)
 {
